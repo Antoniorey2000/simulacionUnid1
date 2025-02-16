@@ -1,0 +1,113 @@
+<!DOCTYPE html> 
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Números Aleatorios - Método Congruencial Multiplicativo</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        .highlight-yellow { background-color: yellow; }
+        .highlight-red { background-color: red; }
+        .highlight-blue { background-color: blue; }
+        .highlight-green { background-color: green; }
+    </style>
+</head>
+<body>
+    <h1>Generador de Números Aleatorios Método Congruencial Multiplicativo</h1>
+    <label for="semilla">Semilla (X0):</label>
+    <input type="number" id="semilla" value="5">
+    <label for="multiplicador">Multiplicador (a):</label>
+    <input type="number" id="multiplicador" value="7">
+    <label for="modulo">Módulo (m):</label>
+    <input type="number" id="modulo" value="16">
+    <button onclick="generarNumeros()">Iniciar</button>
+    <button onclick="detenerGeneracion()">Detener</button>
+    <button onclick="resetear()">Resetear</button>
+    <br><br>
+    <label for="buscar">Buscar Valor:</label>
+    <input type="text" id="buscar" onkeyup="buscarValor()">
+    <br><br>
+    <table>
+        <thead>
+            <tr>
+                <th>N</th>
+                <th>Xn</th>
+                <th>X(n+1)</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-body"></tbody>
+    </table>
+    <script>
+        let intervalo;
+        let valoresGenerados = {};
+        let colores = ['highlight-yellow', 'highlight-red', 'highlight-blue', 'highlight-green'];
+        let colorIndex = 0;
+        let asignacionesColores = {};
+
+        function generarNumeros() {
+            let Xn = parseInt(document.getElementById("semilla").value);
+            let a = parseInt(document.getElementById("multiplicador").value);
+            let m = parseInt(document.getElementById("modulo").value);
+            let tablaBody = document.getElementById("tabla-body");
+            tablaBody.innerHTML = "";
+            valoresGenerados = {};
+            asignacionesColores = {};
+            colorIndex = 0;
+            let N = 0;
+
+            intervalo = setInterval(() => {
+                let Xnp1 = (a * Xn) % m;
+                let fila = document.createElement("tr");
+                fila.innerHTML = `<td>${N}</td><td>${Xn}</td><td class='valor'>${Xnp1}</td>`;
+                tablaBody.appendChild(fila);
+
+                if (valoresGenerados[Xnp1]) {
+                    valoresGenerados[Xnp1]++;
+                    if (!asignacionesColores[Xnp1]) {
+                        asignacionesColores[Xnp1] = colores[colorIndex % colores.length];
+                        colorIndex++;
+                    }
+                    fila.querySelector(".valor").classList.add(asignacionesColores[Xnp1]);
+                } else {
+                    valoresGenerados[Xnp1] = 1;
+                }
+
+                Xn = Xnp1;
+                N++;
+            }, 50);
+        }
+
+        function detenerGeneracion() {
+            clearInterval(intervalo);
+        }
+
+        function resetear() {
+            clearInterval(intervalo);
+            document.getElementById("tabla-body").innerHTML = "";
+            valoresGenerados = {};
+            asignacionesColores = {};
+            colorIndex = 0;
+        }
+
+        function buscarValor() {
+            let filtro = document.getElementById("buscar").value;
+            let filas = document.querySelectorAll("#tabla-body tr");
+            filas.forEach(fila => {
+                if (fila.innerText.includes(filtro)) {
+                    fila.style.display = "";
+                } else {
+                    fila.style.display = "none";
+                }
+            });
+        }
+    </script>
+</body>
+</html>

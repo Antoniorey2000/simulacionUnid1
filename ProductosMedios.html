@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Números Aleatorios - Productos Medios</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generador de Números Aleatorios - Método de los Productos Medios</h1>
+    
+    <label for="semilla1">Semilla X0:</label>
+    <input type="number" id="semilla1" value="5015">
+    
+    <label for="semilla2">Semilla X1:</label>
+    <input type="number" id="semilla2" value="5734">
+    
+    <label for="cifras">Cifras a extraer:</label>
+    <input type="number" id="cifras" value="4" max="4">
+    
+    <button onclick="generarNumeros()">Iniciar</button>
+    <button onclick="detenerGeneracion()">Detener</button>
+    <button onclick="resetear()">Resetear</button>
+    
+    <br><br>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>N</th>
+                <th>Xn</th>
+                <th>X(n+1)</th>
+                <th>Yi = Xn * X(n+1)</th>
+                <th>X(n+2)</th>
+                <th>r(i+1)</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-body"></tbody>
+    </table>
+    
+    <script>
+        let intervalo;
+        function extraerCifras(valor, cifras) {
+            let strValor = valor.toString().padStart(8, '0');
+            let inicio = Math.floor((strValor.length - cifras) / 2);
+            return parseInt(strValor.substring(inicio, inicio + cifras));
+        }
+        
+        function generarNumeros() {
+            let Xn = parseInt(document.getElementById("semilla1").value);
+            let Xnp1 = parseInt(document.getElementById("semilla2").value);
+            let cifras = parseInt(document.getElementById("cifras").value);
+            let tablaBody = document.getElementById("tabla-body");
+            tablaBody.innerHTML = "";
+            let N = 0;
+
+            intervalo = setInterval(() => {
+                let Yi = Xn * Xnp1;
+                let Xnp2 = extraerCifras(Yi, cifras);
+                let ri = Xnp2 / Math.pow(10, cifras);
+                let fila = document.createElement("tr");
+                fila.innerHTML = `<td>${N}</td><td>${Xn}</td><td>${Xnp1}</td><td>${Yi}</td><td>${Xnp2}</td><td>${ri.toFixed(4)}</td>`;
+                tablaBody.appendChild(fila);
+                
+                Xn = Xnp1;
+                Xnp1 = Xnp2;
+                N++;
+            }, 500);
+        }
+        
+        function detenerGeneracion() {
+            clearInterval(intervalo);
+        }
+        
+        function resetear() {
+            clearInterval(intervalo);
+            document.getElementById("tabla-body").innerHTML = "";
+        }
+    </script>
+</body>
+</html>

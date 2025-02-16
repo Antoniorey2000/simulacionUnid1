@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Números Aleatorios</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        .highlight-yellow { background-color: yellow; }
+        .highlight-red { background-color: red; }
+        .highlight-blue { background-color: blue; }
+        .highlight-green { background-color: green; }
+    </style>
+</head>
+<body>
+    <h1>Generador de Números Aleatorios</h1>
+    
+    <label for="semilla">Semilla (X0):</label>
+    <input type="number" id="semilla" value="9803">
+    
+    <label for="constante">Constante (a):</label>
+    <input type="number" id="constante" value="6965">
+    
+    <label for="cifras">Cifras:</label>
+    <input type="number" id="cifras" value="4" max="4">
+    
+    <button onclick="generarNumeros()">Iniciar</button>
+    <button onclick="detenerGeneracion()">Detener</button>
+    <button onclick="resetear()">Resetear</button>
+    
+    <br><br>
+    
+    <label for="buscar">Buscar Valor:</label>
+    <input type="text" id="buscar" onkeyup="buscarValor()">
+    
+    <br><br>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>N</th>
+                <th>Xn</th>
+                <th>a * Xn</th>
+                <th>X(n+1)</th>
+                <th>r(n)</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-body"></tbody>
+    </table>
+    
+    <script>
+        let intervalo;
+        let valoresGenerados = {};
+        let colores = ['highlight-yellow', 'highlight-red', 'highlight-blue', 'highlight-green'];
+        let colorIndex = 0;
+        let asignacionesColores = {};
+        let datosOriginales = [];
+
+        function extraerCifras(valor, cifras) {
+            let strValor = valor.toString().padStart(8, '0');
+            let inicio = Math.floor((strValor.length - cifras) / 2);
+            return parseInt(strValor.substring(inicio, inicio + cifras));
+        }
+
+        function generarNumeros() {
+            let semilla = parseInt(document.getElementById("semilla").value);
+            let constante = parseInt(document.getElementById("constante").value);
+            let cifras = parseInt(document.getElementById("cifras").value);
+            let tablaBody = document.getElementById("tabla-body");
+            tablaBody.innerHTML = "";
+            valoresGenerados = {};
+            asignacionesColores = {};
+            colorIndex = 0;
+            datosOriginales = [];
+            let Xn = semilla;
+            let N = 0;
+
+            intervalo = setInterval(() => {
+                let producto = constante * Xn;
+                let Xnp1 = extraerCifras(producto, cifras);
+                let rn = Xnp1 / Math.pow(10, cifras);
+                let fila = document.createElement("tr");
+                fila.innerHTML = `<td>${N}</td><td>${Xn}</td><td>${producto}</td><td class='valor'>${Xnp1}</td><td>${rn.toFixed(4)}</td>`;
+                tablaBody.appendChild(fila);
+                datosOriginales.push(fila.cloneNode(true));
+
+                if (valoresGenerados[Xnp1]) {
+                    valoresGenerados[Xnp1]++;
+                    if (!asignacionesColores[Xnp1]) {
+                        asignacionesColores[Xnp1] = colores[colorIndex % colores.length];
+                        colorIndex++;
+                    }
+                    fila.querySelector(".valor").classList.add(asignacionesColores[Xnp1]);
+                } else {
+                    valoresGenerados[Xnp1] = 1;
+                }
+
+                Xn = Xnp1;
+                N++;
+            }, 50);
+        }
+
+        function detenerGeneracion() {
+            clearInterval(intervalo);
+        }
+
+        function resetear() {
+            clearInterval(intervalo);
+            document.getElementById("tabla-body").innerHTML = "";
+            valoresGenerados = {};
+            asignacionesColores = {};
+            colorIndex = 0;
+            datosOriginales = [];
+        }
+
+        function buscarValor() {
+            let input = document.getElementById("buscar").value;
+            let tablaBody = document.getElementById("tabla-body");
+            tablaBody.innerHTML = "";
+
+            if (input === "") {
+                datosOriginales.forEach(fila => tablaBody.appendChild(fila.cloneNode(true)));
+            } else {
+                datosOriginales.forEach(fila => {
+                    if (fila.innerHTML.includes(input)) {
+                        tablaBody.appendChild(fila.cloneNode(true));
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

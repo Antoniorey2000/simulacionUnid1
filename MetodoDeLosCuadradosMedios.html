@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Números Aleatorios Metodo De Los Cuadrados Medios</title>
+    <style>
+        /* Estilos para la tabla */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        /* Clases para resaltar valores repetidos con diferentes colores */
+        .highlight-yellow { background-color: yellow; }
+        .highlight-red { background-color: red; }
+        .highlight-blue { background-color: blue; }
+        .highlight-green { background-color: green; }
+    </style>
+</head>
+<body>
+    <h1>Generador de Números Aleatorios</h1>
+    
+    <!-- Entrada para la semilla inicial -->
+    <label for="semilla">Semilla (X0):</label>
+    <input type="number" id="semilla" value="5497">
+    
+    <!-- Entrada para la cantidad de cifras a extraer -->
+    <label for="cifras">Cifras:</label>
+    <input type="number" id="cifras" value="4" max="4">
+    
+    <!-- Botones de control -->
+    <button onclick="generarNumeros()">Iniciar</button>
+    <button onclick="detenerGeneracion()">Detener</button>
+    <button onclick="resetear()">Resetear</button>
+    
+    <br><br>
+    
+    <!-- Entrada para buscar valores en la tabla -->
+    <label for="buscar">Buscar Valor:</label>
+    <input type="text" id="buscar" onkeyup="buscarValor()">
+    
+    <br><br>
+    
+    <!-- Tabla para mostrar los valores generados -->
+    <table>
+        <thead>
+            <tr>
+                <th>N</th>
+                <th>Xn</th>
+                <th>Xn^2</th>
+                <th>X(n+1)</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-body"></tbody>
+    </table>
+    
+    <script>
+        let intervalo; // Variable para controlar el intervalo de generación
+        let valoresGenerados = {}; // Objeto para almacenar valores generados y detectar repeticiones
+        let colores = ['highlight-yellow', 'highlight-red', 'highlight-blue', 'highlight-green']; // Colores para valores repetidos
+        let colorIndex = 0; // Índice para asignar colores ciclicamente
+        let asignacionesColores = {}; // Objeto para mapear valores con colores
+        let datosOriginales = []; // Almacena la tabla original para la función de búsqueda
+
+        /**
+         * Extrae las cifras centrales de un número dado.
+         * @param {number} valor - Número del cual extraer las cifras.
+         * @param {number} cifras - Cantidad de cifras a extraer.
+         * @returns {number} - El número con las cifras extraídas.
+         */
+        function extraerCifras(valor, cifras) {
+            let strValor = valor.toString().padStart(8, '0'); // Asegura que el número tenga al menos 8 dígitos
+            let inicio = Math.floor((strValor.length - cifras) / 2); // Calcula la posición de inicio
+            return parseInt(strValor.substring(inicio, inicio + cifras)); // Extrae las cifras centrales
+        }
+
+        /**
+         * Inicia la generación de números aleatorios con el método de cuadrados medios.
+         */
+        function generarNumeros() {
+            let semilla = parseInt(document.getElementById("semilla").value); // Obtiene la semilla
+            let cifras = parseInt(document.getElementById("cifras").value); // Obtiene el número de cifras a extraer
+            let tablaBody = document.getElementById("tabla-body");
+            tablaBody.innerHTML = ""; // Limpia la tabla antes de empezar
+            valoresGenerados = {}; // Reinicia el registro de valores generados
+            asignacionesColores = {}; // Reinicia el mapeo de colores
+            colorIndex = 0; // Reinicia el índice de colores
+            datosOriginales = []; // Reinicia los datos originales
+            let Xn = semilla;
+            let N = 0;
+
+            intervalo = setInterval(() => {
+                let Xn2 = Xn * Xn; // Calcula el cuadrado del número actual
+                let Xnp1 = extraerCifras(Xn2, cifras); // Extrae las cifras centrales
+                let fila = document.createElement("tr"); // Crea una nueva fila en la tabla
+                fila.innerHTML = `<td>${N}</td><td>${Xn}</td><td>${Xn2}</td><td class='valor'>${Xnp1}</td>`;
+                tablaBody.appendChild(fila);
+                datosOriginales.push(fila.cloneNode(true));
+
+                // Si el valor ya existe, asignar color
+                if (valoresGenerados[Xnp1]) {
+                    valoresGenerados[Xnp1]++;
+                    if (!asignacionesColores[Xnp1]) {
+                        asignacionesColores[Xnp1] = colores[colorIndex % colores.length];
+                        colorIndex++;
+                    }
+                    fila.querySelector(".valor").classList.add(asignacionesColores[Xnp1]);
+                } else {
+                    valoresGenerados[Xnp1] = 1;
+                }
+
+                Xn = Xnp1; // Actualiza el valor para la siguiente iteración
+                N++;
+            }, 50); // Genera un nuevo número cada 500ms
+        }
+
+        /**
+         * Detiene la generación de números.
+         */
+        function detenerGeneracion() {
+            clearInterval(intervalo);
+        }
+
+        /**
+         * Resetea la tabla y las variables asociadas.
+         */
+        function resetear() {
+            clearInterval(intervalo);
+            document.getElementById("tabla-body").innerHTML = "";
+            valoresGenerados = {};
+            asignacionesColores = {};
+            colorIndex = 0;
+            datosOriginales = [];
+        }
+
+        /**
+         * Filtra la tabla según el valor ingresado en la barra de búsqueda.
+         */
+        function buscarValor() {
+            let input = document.getElementById("buscar").value;
+            let tablaBody = document.getElementById("tabla-body");
+            tablaBody.innerHTML = "";
+
+            if (input === "") {
+                datosOriginales.forEach(fila => tablaBody.appendChild(fila.cloneNode(true))); // Restaura la tabla original
+            } else {
+                datosOriginales.forEach(fila => {
+                    if (fila.innerHTML.includes(input)) {
+                        tablaBody.appendChild(fila.cloneNode(true)); // Muestra solo las filas que coincidan con la búsqueda
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
